@@ -1,0 +1,70 @@
+class Solution {
+public:
+    vector<long long> findXSum(vector<int>& nums, int k, int x) {
+         int n = nums.size();
+        vector<long long> ans;
+        unordered_map<int,int> freq;
+        long long topSum = 0;
+
+        struct Cmp {
+            bool operator()(const pair<int,int>& a, const pair<int,int>& b) const {
+                if (a.first == b.first) return a.second < b.second;
+                return a.first < b.first;
+            }
+        };
+
+        multiset<pair<int,int>, Cmp> top, rest;
+
+        auto moveTopToRest = [&](auto it){ topSum -= 1LL * it->first * it->second; rest.insert(*it); top.erase(it); };
+        auto moveRestToTop = [&](auto it){ topSum += 1LL * it->first * it->second; top.insert(*it); rest.erase(it); };
+
+        auto rebalance = [&]() {
+            while ((int)top.size() > x) moveTopToRest(top.begin());
+            while ((int)top.size() < x && !rest.empty()) moveRestToTop(prev(rest.end()));
+            if (!top.empty() && !rest.empty()) {
+                auto it1 = top.begin();
+                auto it2 = prev(rest.end());
+                if (Cmp()(*it1, *it2)) {
+                    moveTopToRest(it1);
+                    moveRestToTop(it2);
+                }
+            }
+        };
+
+        auto add = [&](int val) {
+            int f = freq[val];
+            if (f) {
+                auto it = rest.find({f, val});
+                if (it != rest.end()) rest.erase(it);
+                else {
+                    it = top.find({f, val});
+                    if (it != top.end()) { topSum -= 1LL * it->first * it->second; top.erase(it); }
+                }
+            }
+            freq[val]++;
+            rest.insert({freq[val], val});
+            rebalance();
+        };
+
+        auto remove = [&](int val) {
+            int f = freq[val];
+            if (!f) return;
+            auto it = rest.find({f, val});
+            if (it != rest.end()) rest.erase(it);
+            else {
+                it = top.find({f, val});
+                if (it != top.end()) { topSum -= 1LL * it->first * it->second; top.erase(it); }
+            }
+            freq[val]--;
+            if (freq[val]) rest.insert({freq[val], val});
+            rebalance();
+        };
+
+        for (int i = 0; i < n; ++i) {
+            add(nums[i]);
+            if (i >= k) remove(nums[i - k]);
+            if (i >= k - 1) ans.push_back(topSum);
+        }
+        return ans;
+    }
+};
