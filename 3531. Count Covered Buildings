@@ -1,0 +1,39 @@
+class Solution {
+public:
+    int countCoveredBuildings(int n, vector<vector<int>>& buildings) {
+        unordered_map<int, int> row_min, row_max;
+        unordered_map<int, int> col_min, col_max;
+
+        for (auto &b : buildings) {
+            int x = b[0], y = b[1];
+
+            if (!row_min.count(x)) row_min[x] = y;
+            else row_min[x] = min(row_min[x], y);
+
+            if (!row_max.count(x)) row_max[x] = y;
+            else row_max[x] = max(row_max[x], y);
+
+            if (!col_min.count(y)) col_min[y] = x;
+            else col_min[y] = min(col_min[y], x);
+
+            if (!col_max.count(y)) col_max[y] = x;
+            else col_max[y] = max(col_max[y], x);
+        }
+
+        int covered = 0;
+
+        for (auto &b : buildings) {
+            int x = b[0], y = b[1];
+
+            bool left  = row_min[x] < y;
+            bool right = row_max[x] > y;
+            bool up    = col_min[y] < x;
+            bool down  = col_max[y] > x;
+
+            if (left && right && up && down)
+                covered++;
+        }
+
+        return covered;
+    }
+};
