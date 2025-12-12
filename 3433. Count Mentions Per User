@@ -1,0 +1,72 @@
+class Solution {
+public:
+    vector<int> countMentions(int numberOfUsers, vector<vector<string>>& events) {
+        int m = events.size();
+        vector<int> idx(m);
+        for (int i = 0; i < m; ++i) idx[i] = i;
+
+        // Sort events by (timestamp asc, type: OFFLINE before MESSAGE) but keep relative order otherwise.
+        stable_sort(idx.begin(), idx.end(), [&](int a, int b){
+            int ta = stoi(events[a][1]);
+            int tb = stoi(events[b][1]);
+            if (ta != tb) return ta < tb;
+            int pa = (events[a][0] == "OFFLINE") ? 0 : 1;
+            int pb = (events[b][0] == "OFFLINE") ? 0 : 1;
+            return pa < pb;
+        });
+
+        vector<int> mentions(numberOfUsers, 0);
+        vector<bool> online(numberOfUsers, true);
+        vector<int> offlineUntil(numberOfUsers, -1); // time when they come back online
+
+        int curIdx = 0;
+        while (curIdx < m) {
+            int evIndex = idx[curIdx];
+            int timestamp = stoi(events[evIndex][1]);
+
+            // Before processing events at this timestamp, bring back users whose offlineUntil <= timestamp
+            for (int u = 0; u < numberOfUsers; ++u) {
+                if (!online[u] && offlineUntil[u] <= timestamp) {
+                    online[u] = true;
+                }
+            }
+
+            // Process all events that share this timestamp (we sorted, so they are contiguous)
+            while (curIdx < m) {
+                int j = idx[curIdx];
+                int tj = stoi(events[j][1]);
+                if (tj != timestamp) break;
+
+                string type = events[j][0];
+                if (type == "OFFLINE") {
+                    int id = stoi(events[j][2]);
+                    // The problem guarantees the user is online at this time.
+                    online[id] = false;
+                    offlineUntil[id] = timestamp + 60;
+                } else { // MESSAGE
+                    string msg = events[j][2];
+                    if (msg == "ALL") {
+                        for (int u = 0; u < numberOfUsers; ++u) mentions[u]++;
+                    } else if (msg == "HERE") {
+                        for (int u = 0; u < numberOfUsers; ++u)
+                            if (online[u]) mentions[u]++;
+                    } else {
+                        // tokens like "id1 id0 id1"
+                        stringstream ss(msg);
+                        string token;
+                        while (ss >> token) {
+                            if (token.rfind("id", 0) == 0) {
+                                int id = stoi(token.substr(2));
+                                if (id >= 0 && id < numberOfUsers)
+                                    mentions[id]++;
+                            }
+                        }
+                    }
+                }
+                ++curIdx;
+            }
+        }
+
+        return mentions;
+    }
+};
