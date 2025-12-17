@@ -1,0 +1,40 @@
+class Solution {
+public:
+    long long maximumProfit(vector<int>& prices, int k) {
+        const long long NEG = -1e18;
+
+        vector<long long> dp0(k + 1, NEG), dp1(k + 1, NEG), dp2(k + 1, NEG);
+        dp0[0] = 0;
+
+        for (int price : prices) {
+            // snapshot previous day
+            auto prev0 = dp0;
+            auto prev1 = dp1;
+            auto prev2 = dp2;
+
+            for (int t = 0; t <= k; t++) {
+                // open long
+                if (prev0[t] != NEG)
+                    dp1[t] = max(dp1[t], prev0[t] - price);
+
+                // open short
+                if (prev0[t] != NEG)
+                    dp2[t] = max(dp2[t], prev0[t] + price);
+
+                // close long
+                if (t < k && prev1[t] != NEG)
+                    dp0[t + 1] = max(dp0[t + 1], prev1[t] + price);
+
+                // close short
+                if (t < k && prev2[t] != NEG)
+                    dp0[t + 1] = max(dp0[t + 1], prev2[t] - price);
+            }
+        }
+
+        long long ans = 0;
+        for (int t = 0; t <= k; t++)
+            ans = max(ans, dp0[t]);
+
+        return ans;
+    }
+};
