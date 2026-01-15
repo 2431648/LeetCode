@@ -1,0 +1,43 @@
+class Solution {
+public:
+    int nearestExit(vector<vector<char>>& maze, vector<int>& entrance) {
+        int m = maze.size(), n = maze[0].size();
+        queue<pair<int,int>> q;
+
+        q.push({entrance[0], entrance[1]});
+        maze[entrance[0]][entrance[1]] = '+'; // mark visited
+
+        int steps = 0;
+        int dirs[4][2] = {{1,0},{-1,0},{0,1},{0,-1}};
+
+        while (!q.empty()) {
+            int sz = q.size();
+            steps++;
+
+            while (sz--) {
+                auto [r, c] = q.front();
+                q.pop();
+
+                for (auto& d : dirs) {
+                    int nr = r + d[0];
+                    int nc = c + d[1];
+
+                    if (nr < 0 || nc < 0 || nr >= m || nc >= n)
+                        continue;
+
+                    if (maze[nr][nc] == '+')
+                        continue;
+
+                    // If on border and not entrance, it's an exit
+                    if (nr == 0 || nc == 0 || nr == m - 1 || nc == n - 1)
+                        return steps;
+
+                    maze[nr][nc] = '+';
+                    q.push({nr, nc});
+                }
+            }
+        }
+
+        return -1;
+    }
+};
