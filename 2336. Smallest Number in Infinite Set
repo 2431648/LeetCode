@@ -1,0 +1,31 @@
+class SmallestInfiniteSet {
+private:
+    int current;
+    priority_queue<int, vector<int>, greater<int>> minHeap;
+    unordered_set<int> inHeap;
+
+public:
+    SmallestInfiniteSet() {
+        current = 1;
+    }
+
+    int popSmallest() {
+        int result;
+        if (!minHeap.empty()) {
+            result = minHeap.top();
+            minHeap.pop();
+            inHeap.erase(result);
+        } else {
+            result = current;
+            current++;
+        }
+        return result;
+    }
+
+    void addBack(int num) {
+        if (num < current && inHeap.find(num) == inHeap.end()) {
+            minHeap.push(num);
+            inHeap.insert(num);
+        }
+    }
+};
