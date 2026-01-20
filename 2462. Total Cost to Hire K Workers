@@ -1,0 +1,41 @@
+class Solution {
+public:
+    long long totalCost(vector<int>& costs, int k, int candidates) {
+        priority_queue<int, vector<int>, greater<int>> leftHeap, rightHeap;
+        int n = costs.size();
+        int l = 0, r = n - 1;
+        long long ans = 0;
+
+        // Fill initial left heap
+        for (int i = 0; i < candidates && l <= r; i++) {
+            leftHeap.push(costs[l++]);
+        }
+
+        // Fill initial right heap
+        for (int i = 0; i < candidates && l <= r; i++) {
+            rightHeap.push(costs[r--]);
+        }
+
+        // Hire k workers
+        while (k--) {
+            int leftMin = leftHeap.empty() ? INT_MAX : leftHeap.top();
+            int rightMin = rightHeap.empty() ? INT_MAX : rightHeap.top();
+
+            if (leftMin <= rightMin) {
+                ans += leftMin;
+                leftHeap.pop();
+                if (l <= r) {
+                    leftHeap.push(costs[l++]);
+                }
+            } else {
+                ans += rightMin;
+                rightHeap.pop();
+                if (l <= r) {
+                    rightHeap.push(costs[r--]);
+                }
+            }
+        }
+
+        return ans;
+    }
+};
