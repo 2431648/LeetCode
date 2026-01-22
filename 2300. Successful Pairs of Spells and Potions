@@ -1,0 +1,21 @@
+class Solution {
+public:
+    vector<int> successfulPairs(vector<int>& spells, vector<int>& potions, long long success) {
+        sort(potions.begin(), potions.end());
+        int m = potions.size();
+        vector<int> result;
+
+        for (int s : spells) {
+            // Minimum potion strength needed
+            long long need = (success + s - 1) / s;  // ceil(success / s)
+
+            // Find first potion >= need
+            int idx = lower_bound(potions.begin(), potions.end(), need) - potions.begin();
+
+            // Count of valid potions
+            result.push_back(m - idx);
+        }
+
+        return result;
+    }
+};
