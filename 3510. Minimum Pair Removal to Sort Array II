@@ -1,0 +1,83 @@
+#include <vector>
+#include <set>
+#include <iostream>
+
+using namespace std;
+
+class Solution {
+public:
+    int minimumPairRemoval(vector<int>& nums) {
+        int n = nums.size();
+        if (n < 2) return 0;
+
+        vector<long long> a(n);
+        for (int i = 0; i < n; i++) a[i] = nums[i];
+
+        // Doubly linked list to keep track of neighbors
+        vector<int> L(n), R(n);
+        for (int i = 0; i < n; i++) {
+            L[i] = i - 1;
+            R[i] = i + 1;
+        }
+        R[n - 1] = -1;
+
+        // Set to store {sum, index} to always pick the minimum, then leftmost
+        set<pair<long long, int>> pq;
+        int bad_count = 0;
+
+        auto is_bad = [&](int i) {
+            if (i < 0 || R[i] == -1) return false;
+            return a[i] > a[R[i]];
+        };
+
+        for (int i = 0; i < n - 1; i++) {
+            pq.insert({a[i] + a[i + 1], i});
+            if (a[i] > a[i + 1]) bad_count++;
+        }
+
+        int ops = 0;
+        // The simulation MUST continue as long as the array is not non-decreasing
+        while (bad_count > 0 && !pq.empty()) {
+            auto it = pq.begin();
+            long long sum = it->first;
+            int i = it->second;
+            pq.erase(it);
+
+            int j = R[i];
+            // Remove inversions related to the two merging nodes
+            if (is_bad(L[i])) bad_count--;
+            if (is_bad(i)) bad_count--;
+            if (is_bad(j)) bad_count--;
+
+            // Remove the pair sum of the neighbor to the right of j (if exists)
+            if (R[j] != -1) {
+                pq.erase({a[j] + a[R[j]], j});
+            }
+            // Remove the pair sum of the neighbor to the left of i (if exists)
+            if (L[i] != -1) {
+                pq.erase({a[L[i]] + a[i], L[i]});
+            }
+
+            // Perform the merge: i becomes the new node with the sum
+            a[i] = sum;
+            int next_node = R[j];
+            R[i] = next_node;
+            if (next_node != -1) L[next_node] = i;
+
+            ops++;
+
+            // Re-add inversions and new pair sums
+            if (is_bad(L[i])) bad_count++;
+            if (is_bad(i)) bad_count++;
+
+            if (L[i] != -1) {
+                pq.insert({a[L[i]] + a[i], L[i]});
+            }
+            if (R[i] != -1) {
+                pq.insert({a[i] + a[R[i]], i});
+            }
+        }
+
+        return ops;
+    }
+};
