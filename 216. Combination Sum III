@@ -1,0 +1,27 @@
+class Solution {
+public:
+    vector<vector<int>> combinationSum3(int k, int n) {
+        vector<vector<int>> ans;
+        vector<int> path;
+
+        function<void(int, int, int)> dfs = [&](int start, int cnt, int sum) {
+            if (cnt == k && sum == 0) {
+                ans.push_back(path);
+                return;
+            }
+            if (cnt > k || sum < 0) return;
+
+            for (int i = start; i <= 9; i++) {
+                // Prune: not enough numbers left
+                if (cnt + (9 - i + 1) < k) break;
+
+                path.push_back(i);
+                dfs(i + 1, cnt + 1, sum - i);
+                path.pop_back();
+            }
+        };
+
+        dfs(1, 0, n);
+        return ans;
+    }
+};
