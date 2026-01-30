@@ -1,0 +1,67 @@
+class Solution {
+public:
+    long long minimumCost(string source, string target, vector<string>& original, vector<string>& changed, vector<int>& cost) {
+        const long long INF = 1e18;
+        int n = source.size();
+
+        unordered_map<int, unordered_map<string, int>> id;
+        unordered_map<int, vector<string>> nodes;
+        unordered_map<int, vector<vector<long long>>> dist;
+
+        for (int i = 0; i < original.size(); i++) {
+            int len = original[i].size();
+            if (!id[len].count(original[i])) {
+                id[len][original[i]] = nodes[len].size();
+                nodes[len].push_back(original[i]);
+            }
+            if (!id[len].count(changed[i])) {
+                id[len][changed[i]] = nodes[len].size();
+                nodes[len].push_back(changed[i]);
+            }
+        }
+
+        for (auto& [len, vec] : nodes) {
+            int m = vec.size();
+            dist[len].assign(m, vector<long long>(m, INF));
+            for (int i = 0; i < m; i++) dist[len][i][i] = 0;
+        }
+
+        for (int i = 0; i < original.size(); i++) {
+            int len = original[i].size();
+            int u = id[len][original[i]];
+            int v = id[len][changed[i]];
+            dist[len][u][v] = min(dist[len][u][v], (long long)cost[i]);
+        }
+
+        for (auto& [len, d] : dist) {
+            int m = d.size();
+            for (int k = 0; k < m; k++)
+                for (int i = 0; i < m; i++)
+                    for (int j = 0; j < m; j++)
+                        if (d[i][k] < INF && d[k][j] < INF)
+                            d[i][j] = min(d[i][j], d[i][k] + d[k][j]);
+        }
+
+        vector<long long> dp(n + 1, INF);
+        dp[n] = 0;
+
+        for (int i = n - 1; i >= 0; i--) {
+            if (source[i] == target[i]) dp[i] = dp[i + 1];
+
+            for (auto& [len, mp] : id) {
+                if (i + len > n) continue;
+
+                string s = source.substr(i, len);
+                string t = target.substr(i, len);
+
+                if (mp.count(s) && mp.count(t)) {
+                    long long c = dist[len][mp[s]][mp[t]];
+                    if (c < INF)
+                        dp[i] = min(dp[i], c + dp[i + len]);
+                }
+            }
+        }
+
+        return dp[0] >= INF ? -1 : dp[0];
+    }
+};
