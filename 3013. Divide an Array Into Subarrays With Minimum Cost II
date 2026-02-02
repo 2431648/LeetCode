@@ -1,0 +1,56 @@
+class Solution {
+public:
+    long long minimumCost(vector<int>& nums, int k, int dist) {
+        int n = nums.size();
+        multiset<pair<long long,int>> low, high;
+        long long sum = 0;
+
+        auto balance = [&]() {
+            while ((int)low.size() > k - 1) {
+                auto it = prev(low.end());
+                sum -= it->first;
+                high.insert(*it);
+                low.erase(it);
+            }
+            while ((int)low.size() < k - 1 && !high.empty()) {
+                auto it = high.begin();
+                sum += it->first;
+                low.insert(*it);
+                high.erase(it);
+            }
+        };
+
+        auto add = [&](long long x, int i) {
+            if (low.empty() || make_pair(x,i) <= *prev(low.end())) {
+                low.insert({x,i});
+                sum += x;
+            } else {
+                high.insert({x,i});
+            }
+            balance();
+        };
+
+        auto remove = [&](long long x, int i) {
+            if (low.erase({x,i})) {
+                sum -= x;
+            } else {
+                high.erase({x,i});
+            }
+            balance();
+        };
+
+        for (int i = 1; i <= dist + 1; i++) {
+            add(nums[i], i);
+        }
+
+        long long ans = nums[0] + sum;
+
+        for (int r = dist + 2, l = 1; r < n; r++, l++) {
+            add(nums[r], r);
+            remove(nums[l], l);
+            ans = min(ans, nums[0] + sum);
+        }
+
+        return ans;
+    }
+};
