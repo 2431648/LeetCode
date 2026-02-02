@@ -1,0 +1,19 @@
+class Solution {
+public:
+    int numTilings(int n) {
+        const int MOD = 1000000007;
+        if (n == 1) return 1;
+        if (n == 2) return 2;
+
+        long long a = 1, b = 2, c = 5;
+
+        for (int i = 4; i <= n; i++) {
+            long long d = (2 * c + a) % MOD;
+            a = b;
+            b = c;
+            c = d;
+        }
+
+        return c;
+    }
+};
