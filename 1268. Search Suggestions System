@@ -1,0 +1,25 @@
+class Solution {
+public:
+    vector<vector<string>> suggestedProducts(vector<string>& products, string searchWord) {
+        sort(products.begin(), products.end());
+
+        vector<vector<string>> ans;
+        string prefix;
+
+        for (char c : searchWord) {
+            prefix += c;
+            auto it = lower_bound(products.begin(), products.end(), prefix);
+
+            vector<string> temp;
+            for (auto i = it; i != products.end() && temp.size() < 3; i++) {
+                if (i->compare(0, prefix.size(), prefix) == 0)
+                    temp.push_back(*i);
+                else
+                    break;
+            }
+            ans.push_back(temp);
+        }
+
+        return ans;
+    }
+};
